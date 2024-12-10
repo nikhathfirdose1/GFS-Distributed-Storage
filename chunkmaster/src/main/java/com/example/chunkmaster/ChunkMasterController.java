@@ -12,24 +12,8 @@ import java.util.*;
 @RequestMapping("/chunkMaster")
 public class ChunkMasterController {
 
-    // inner class to represent a chunk
-    public static class Chunk {
-        private final String uuid;
-        private final String data;
-
-        public Chunk(String uuid, String data) {
-            this.uuid = uuid;
-            this.data = data;
-        }
-
-        public String getUuid() {
-            return uuid;
-        }
-
-        public String getData() {
-            return data;
-        }
-    }
+    // Record classes for request and response objects
+    public record Chunk(String uuid, String data) {}
 
     // <fileName, <chunkNumber, List<chunkServers>>>
     private static final Map<String, Map<String, List<String>>> fileToChunkNumMap = new HashMap<>();
@@ -79,7 +63,7 @@ public class ChunkMasterController {
             }
 
             // Map the chunk to the selected servers
-            chunkNumToChunkServers.put(chunks.get(chunkNumber).getUuid(), selectedServers);
+            chunkNumToChunkServers.put(chunks.get(chunkNumber - 1).uuid(), selectedServers);
         }
 
         // Store the mapping in fileToChunkNumMap
