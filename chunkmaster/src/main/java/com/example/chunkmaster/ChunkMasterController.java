@@ -12,8 +12,27 @@ import java.util.*;
 @RequestMapping("/chunkMaster")
 public class ChunkMasterController {
 
+    // inner class to represent a chunk
+    public static class Chunk {
+        private final String uuid;
+        private final String data;
+
+        public Chunk(String uuid, String data) {
+            this.uuid = uuid;
+            this.data = data;
+        }
+
+        public String getUuid() {
+            return uuid;
+        }
+
+        public String getData() {
+            return data;
+        }
+    }
+
     // <fileName, <chunkNumber, List<chunkServers>>>
-    private static final Map<String, Map<Integer, List<String>>> fileToChunkNumMap = new HashMap<>();
+    private static final Map<String, Map<String, List<String>>> fileToChunkNumMap = new HashMap<>();
 
     // List of chunk servers
     @Value("${chunk.servers}")
@@ -35,7 +54,7 @@ public class ChunkMasterController {
 
     // Endpoint to map file chunks to chunk servers
     @PostMapping("/mapFile")
-    public Map<Integer, List<String>> mapFile(@RequestParam("fileName") String fileName, @RequestParam("numChunks") int numChunks, @RequestParam("numCopies") int numCopies) {
+    public Map<String, List<String>> mapFile(@RequestParam("fileName") String fileName, @RequestBody List<Chunk> chunks, @RequestParam("numCopies") int numCopies) {
         // Check if file already exists in fileToChunkNumMap
         if (fileToChunkNumMap.containsKey(fileName)) {
             return fileToChunkNumMap.get(fileName);
@@ -47,10 +66,10 @@ public class ChunkMasterController {
         }
 
         // Create a new chunk server mapping for the file
-        Map<Integer, List<String>> chunkNumToChunkServers = new LinkedHashMap<>();
+        Map<String, List<String>> chunkNumToChunkServers = new LinkedHashMap<>();
 
         // Distribute file chunks across chunk servers
-        for (int chunkNumber = 1; chunkNumber <= numChunks; chunkNumber++) {
+        for (int chunkNumber = 1; chunkNumber <= chunks.size(); chunkNumber++) {
             // Select `numCopies` servers with the least chunks
             List<String> selectedServers = getLeastLoadedServers(numCopies);
 
@@ -60,7 +79,7 @@ public class ChunkMasterController {
             }
 
             // Map the chunk to the selected servers
-            chunkNumToChunkServers.put(chunkNumber, selectedServers);
+            chunkNumToChunkServers.put(chunks.get(chunkNumber).getUuid(), selectedServers);
         }
 
         // Store the mapping in fileToChunkNumMap
@@ -86,7 +105,7 @@ public class ChunkMasterController {
 
     // Endpoint to get all file-to-chunk-server mapping
     @GetMapping("/getAllFileMapping")
-    public ResponseEntity<Map<String, Map<Integer, List<String>>>> getAllFileMapping() {
+    public ResponseEntity<Map<String, Map<String, List<String>>>> getAllFileMapping() {
         if (fileToChunkNumMap.isEmpty()) {
             return ResponseEntity.ok().body(null);
         }
@@ -95,7 +114,7 @@ public class ChunkMasterController {
 
     // Endpoint to get chunk servers for a file
     @GetMapping("/getFileMapping")
-    public ResponseEntity<Map<Integer, List<String>>> getFileMapping(@RequestParam("fileName") String fileName) {
+    public ResponseEntity<Map<String, List<String>>> getFileMapping(@RequestParam("fileName") String fileName) {
         if (!fileToChunkNumMap.containsKey(fileName)) {
             return ResponseEntity.ok().body(null);
         }
