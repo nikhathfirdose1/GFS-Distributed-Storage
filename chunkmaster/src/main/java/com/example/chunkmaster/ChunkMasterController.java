@@ -16,15 +16,17 @@ public class ChunkMasterController {
     public record Chunk(String uuid, String data) {}
 
     // <fileName, <chunkNumber, List<chunkServers>>>
-    private static final Map<String, Map<String, List<String>>> fileToChunkNumMap = new HashMap<>();
+    private final Map<String, Map<String, List<String>>> fileToChunkNumMap = new HashMap<>();
 
     // List of chunk servers
+    // TODO: Not hardcoding server instances. Let's dynamically populate it
     @Value("${chunk.servers}")
     private final List<String> serverList = new ArrayList<>();
 
     // Map of chunk server URLs and the number of chunks they hold
     private final Map<String, Integer> chunkServers = new HashMap<>();
 
+    // TODO: Not hardcoding server instances. Let's dynamically populate it
     // Load the initial list of servers into the chunkServers map
     @PostConstruct
     public void initializeChunkServers() {
