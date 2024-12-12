@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,7 +24,10 @@ public class ChunkServerController {
             HttpServletRequest request) {
         try {
             String senderIp = request.getRemoteAddr();
-            String senderUrl = System.getProperty("user.dir") + File.separator + "chunks" + File.separator + senderIp;
+            int serverPort = request.getLocalPort();
+
+            String senderUrl = System.getProperty("user.dir") + File.separator + "chunks" + File.separator + serverPort
+                    + File.separator + senderIp;
 
             File folder = new File(senderUrl);
 
@@ -50,11 +54,23 @@ public class ChunkServerController {
     }
 
     @GetMapping("/getChunk")
-    public ResponseEntity<byte[]> getChunk(@RequestParam String chunkId) {
-        byte[] data = chunkStorage.get(chunkId);
-        if (data == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    public ResponseEntity<byte[]> getChunk(@RequestParam String chunkId, HttpServletRequest request) {
+        try {
+            String senderIp = request.getRemoteAddr();
+            int serverPort = request.getLocalPort();
+
+            String baseDir = System.getProperty("user.dir") + File.separator + "chunks" + File.separator + serverPort;
+            File chunkFile = new File(baseDir + File.separator + senderIp + File.separator + chunkId + ".chk");
+
+            if (!chunkFile.exists()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(("Chunk not found: " + chunkId).getBytes());
+            }
+
+            byte[] data = Files.readAllBytes(chunkFile.toPath());
+            return ResponseEntity.ok(data);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(("Error retrieving chunk: " + e.getMessage()).getBytes());
         }
-        return ResponseEntity.ok(data);
     }
 }
