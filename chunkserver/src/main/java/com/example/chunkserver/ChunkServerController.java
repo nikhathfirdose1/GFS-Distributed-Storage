@@ -24,7 +24,10 @@ public class ChunkServerController {
         chunks.add(chunk);
         chunkStorage.put(filename, chunks);
         System.out.println("Stored ChunkID: " + chunk.getId() + ", for File: " + filename);
-
+        System.out.println("Current Chunks stored for file: "+filename);
+        for (Chunk c : chunks){
+            System.out.println(c.getId());
+        }
         return ResponseEntity.ok("Stored ChunkID: " + chunk.getId() + ", for File: " + filename);
     }
 
