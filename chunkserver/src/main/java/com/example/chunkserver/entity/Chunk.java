@@ -1,5 +1,6 @@
 package com.example.chunkserver.entity;
 
+
 public class Chunk {
     String id;
     String content;

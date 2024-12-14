@@ -11,14 +11,13 @@ import com.example.chunkserver.entity.Chunk;
 
 @Service
 public class ChunkServerService {
-    private String getBaseURL(String senderIp, int serverPort, String fileName) {
-        return System.getProperty("user.dir") + File.separator + "chunks" + File.separator + serverPort + File.separator
-                + senderIp + File.separator + fileName;
+    private String getBaseURL(int serverPort, String fileName) {
+        return System.getProperty("user.dir") + File.separator + "chunks" + File.separator + serverPort + File.separator + fileName;
     }
 
-    public String storeChunk(String senderIp, int serverPort, String filename, Chunk chunk)
+    public String storeChunk(int serverPort, String filename, Chunk chunk)
             throws IOException, RuntimeException {
-        File directory = new File(getBaseURL(senderIp, serverPort, filename));
+        File directory = new File(getBaseURL(serverPort, filename));
         if (!directory.exists()) {
             boolean dirCreated = directory.mkdirs();
             if (!dirCreated) {
@@ -36,10 +35,10 @@ public class ChunkServerService {
         return chunkFile.getAbsolutePath();
     }
 
-    public String getChunk(String senderIp, int serverPort, String filename, String chunkId)
+    public String getChunk(int serverPort, String filename, String chunkId)
             throws IOException, RuntimeException {
 
-        File directory = new File(getBaseURL(senderIp, serverPort, filename));
+        File directory = new File(getBaseURL(serverPort, filename));
         if (!directory.exists()) {
             throw new RuntimeException("File chunks not found: " + directory.getAbsolutePath());
         }
