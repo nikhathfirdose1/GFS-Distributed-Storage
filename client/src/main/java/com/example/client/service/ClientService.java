@@ -3,7 +3,7 @@ package com.example.client.service;
 import com.example.client.entity.Chunk;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,7 +14,8 @@ public class ClientService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final ClientProcessor clientProcessor;
-    public ClientService(){
+
+    public ClientService() {
         restTemplate = new RestTemplate();
         objectMapper = new ObjectMapper();
         clientProcessor = new ClientProcessor();
@@ -36,27 +37,35 @@ public class ClientService {
 
         Map<String, List<String>> chunkToChunkServerMap;
         try {
-             chunkToChunkServerMap = objectMapper.readValue(response.getBody(), Map.class);
+            chunkToChunkServerMap = objectMapper.readValue(response.getBody(), Map.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
 
 
-        if(chunks.size()!=chunkToChunkServerMap.size()){
+        if (chunks.size() != chunkToChunkServerMap.size()) {
             throw new RuntimeException("Chunk size in master does not match the chunk size split in client");
         }
 
         //send chunks to respective chunk server addresses
-        for(Chunk chunk: chunks){
-            if(!chunkToChunkServerMap.containsKey(chunk.getId())){
+        for (Chunk chunk : chunks) {
+            if (!chunkToChunkServerMap.containsKey(chunk.getId())) {
                 throw new RuntimeException("chunkId not found in response from master");
             }
             List<String> chunkAddressList = chunkToChunkServerMap.get(chunk.getId());
-            for(String chunkAddress: chunkAddressList){
-                restTemplate.postForEntity(chunkAddress + "/chunkserver/storeChunk?fileName=" + fileName, chunk, String.class);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            for (String chunkAddress : chunkAddressList) {
+                HttpEntity<Chunk> entity = new HttpEntity<>(chunk, headers);
+                String chunkServerStoreChunkURL = chunkAddress + "/chunkserver/storeChunk?filename=" + fileName;
+                restTemplate.exchange(
+                        chunkServerStoreChunkURL,
+                        HttpMethod.POST,
+                        entity,
+                        String.class
+                );
             }
         }
-
 
 
 //        // Simulate splitting the file into chunks and sending to ChunkServers
