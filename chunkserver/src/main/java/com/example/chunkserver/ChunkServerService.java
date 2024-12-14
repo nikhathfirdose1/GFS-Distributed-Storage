@@ -1,49 +1,54 @@
 package com.example.chunkserver;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 
 import org.springframework.stereotype.Service;
 
+import com.example.chunkserver.entity.Chunk;
+
 @Service
 public class ChunkServerService {
-    private String getBaseURL(String senderIp, int serverPort) {
+    private String getBaseURL(String senderIp, int serverPort, String fileName) {
         return System.getProperty("user.dir") + File.separator + "chunks" + File.separator + serverPort + File.separator
-                + senderIp;
+                + senderIp + File.separator + fileName;
     }
 
-    public String storeChunk(String senderIp, int serverPort, String chunkId, byte[] data) throws IOException, RuntimeException {
-        String senderUrl = getBaseURL(senderIp, serverPort);
-
-        File folder = new File(senderUrl);
-
-        if (!folder.exists()) {
-            boolean created = folder.mkdirs();
-            if (!created) {
-                throw new RuntimeException("Failed to create directory for sender: " + senderIp);
+    public String storeChunk(String senderIp, int serverPort, String filename, Chunk chunk)
+            throws IOException, RuntimeException {
+        File directory = new File(getBaseURL(senderIp, serverPort, filename));
+        if (!directory.exists()) {
+            boolean dirCreated = directory.mkdirs();
+            if (!dirCreated) {
+                throw new RuntimeException("Failed to create directory: " + directory.getAbsolutePath());
             }
         }
 
-        String fileName = chunkId + ".chk";
-        File chunkFile = new File(folder, fileName);
-
-        FileOutputStream fos = new FileOutputStream(chunkFile);
-        fos.write(data);
-        fos.close();
+        File chunkFile = new File(directory, chunk.getId() + ".chk");
+        try (FileWriter writer = new FileWriter(chunkFile)) {
+            writer.write(chunk.getContent());
+        } catch (IOException e) {
+            throw new IOException(chunkFile.getAbsolutePath());
+        }
 
         return chunkFile.getAbsolutePath();
     }
 
-    public byte[] getChunk(String senderIp, int serverPort, String chunkId) throws IOException, RuntimeException{
-        String baseDir = getBaseURL(senderIp, serverPort);
-        File chunkFile = new File(baseDir + File.separator + chunkId + ".chk");
+    public String getChunk(String senderIp, int serverPort, String filename, String chunkId)
+            throws IOException, RuntimeException {
 
-        if (!chunkFile.exists()) {
-            throw new RuntimeException("Chunk not found: " + chunkId);
+        File directory = new File(getBaseURL(senderIp, serverPort, filename));
+        if (!directory.exists()) {
+            throw new RuntimeException("File chunks not found: " + directory.getAbsolutePath());
         }
 
-        return Files.readAllBytes(chunkFile.toPath());
+        File chunkFile = new File(directory + File.separator + chunkId + ".chk");
+        if (!chunkFile.exists()) {
+            throw new IOException("Chunk not found: " + chunkId + ".chk");
+        }
+
+        return Files.readString(chunkFile.toPath());
     }
 }

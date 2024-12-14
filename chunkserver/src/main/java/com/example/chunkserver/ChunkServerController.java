@@ -1,10 +1,16 @@
 package com.example.chunkserver;
 
+import com.example.chunkserver.entity.Chunk;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
@@ -13,41 +19,50 @@ import java.io.IOException;
 @RequestMapping("/chunkserver")
 public class ChunkServerController {
 
-    @Autowired private ChunkServerService chunkServerService;
+    @Autowired
+    private ChunkServerService chunkServerService;
+    private Map<String, List<Chunk>> chunkStorage = new HashMap<>();
+
+    @PostConstruct
+    public void initializeChunkStorage() {
+        System.out.println("Initializing chunk storage...");
+        // chunkStorage = chunkServerService.retrieveChunks();
+        System.out.println("Chunk storage initialized: " + chunkStorage);
+    }
 
     @PostMapping("/storeChunk")
-    public ResponseEntity<String> storeChunk(@RequestParam String chunkId, @RequestBody byte[] data,
+    public ResponseEntity<String> storeChunk(@RequestParam String filename, @RequestBody Chunk chunk,
             HttpServletRequest request) {
         try {
             String senderIp = request.getRemoteAddr();
             int serverPort = request.getLocalPort();
 
-            String absolutePath = chunkServerService.storeChunk(senderIp, serverPort, chunkId, data);
+            System.out.println("Received request to store chunk: " + chunk.getId() + ", for file: " + filename);
+            chunkServerService.storeChunk(senderIp, serverPort, filename, chunk);
 
-            return ResponseEntity.ok("Chunk stored successfully: " + absolutePath);
+            return ResponseEntity.ok("Stored ChunkID: " + chunk.getId() + ", for File: " + filename);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error storing chunk: " + e.getMessage());
+                    .body("Error storing chunk to file: " + e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
         }
     }
 
-    @GetMapping("/getChunk")
-    public ResponseEntity<byte[]> getChunk(@RequestParam String chunkId, HttpServletRequest request) {
+    @PostMapping("/getChunk")
+    public ResponseEntity<Chunk> getChunk(@RequestParam String filename, String chunkId, HttpServletRequest request) {
         try {
             String senderIp = request.getRemoteAddr();
             int serverPort = request.getLocalPort();
+            System.out.println("Received request to retrieve chunk: " + chunkId + ", for file: " + filename);
+            String data = chunkServerService.getChunk(senderIp, serverPort, filename, chunkId);
 
-            byte[] data = chunkServerService.getChunk(senderIp, serverPort, chunkId);
-            return ResponseEntity.ok(data);
+            return ResponseEntity.ok(new Chunk(chunkId, data));
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(("Error retrieving chunk: " + e.getMessage()).getBytes());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(("Error: " + e.getMessage()).getBytes());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 }
