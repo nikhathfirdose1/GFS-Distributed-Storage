@@ -33,8 +33,8 @@ public class ClientApplication {
     }
 
     public static void writeOperation() {
-        Scanner scanner = new Scanner(System.in);
         ClientService clientService = new ClientService();
+        Scanner scanner = new Scanner(System.in);
         String fileName;
         System.out.println("##Write Operation## Enter File Path : ");
         String filePath = scanner.nextLine();

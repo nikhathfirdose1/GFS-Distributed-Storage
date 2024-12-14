@@ -13,7 +13,7 @@ import java.util.*;
 public class ChunkMasterController {
 
     // Record classes for request and response objects
-    public record Chunk(String uuid, String data) {}
+    public record Chunk(String id, String content) {}
 
     // <fileName, <chunkNumber, List<chunkServers>>>
     private final Map<String, Map<String, List<String>>> fileToChunkNumMap = new HashMap<>();
@@ -65,7 +65,7 @@ public class ChunkMasterController {
             }
 
             // Map the chunk to the selected servers
-            chunkNumToChunkServers.put(chunks.get(chunkNumber - 1).uuid(), selectedServers);
+            chunkNumToChunkServers.put(chunks.get(chunkNumber - 1).id(), selectedServers);
         }
 
         // Store the mapping in fileToChunkNumMap

@@ -1,15 +1,12 @@
 package com.example.client.service;
 
 import com.example.client.entity.Chunk;
-import org.springframework.stereotype.Service;
-
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
-@Service
 public class ClientProcessor {
 
     public List<Chunk> split(byte[] fileData, int chunkSize) {

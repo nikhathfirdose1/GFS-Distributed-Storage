@@ -1,32 +1,31 @@
 package com.example.client.service;
 
 import com.example.client.entity.Chunk;
-import com.example.client.entity.response.MapFileResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
-@Service
 public class ClientService {
 
-    @Autowired
-    private ClientProcessor clientProcessor;
-    private final RestTemplate restTemplate = new RestTemplate();
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+    private final ClientProcessor clientProcessor;
+    public ClientService(){
+        restTemplate = new RestTemplate();
+        objectMapper = new ObjectMapper();
+        clientProcessor = new ClientProcessor();
+    }
 
     public ResponseEntity<String> uploadFile(@RequestParam String fileName, @RequestBody byte[] fileData, @RequestParam int numCopies) {
         int chunkSizeInBytes = 1000;
         List<Chunk> chunks = clientProcessor.split(fileData, chunkSizeInBytes);
         // Notify ChunkMaster to store the file
         ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:8080/chunkmaster/mapFile?fileName=" + fileName + "&numCopies=" + numCopies,
+                "http://localhost:8080/chunkMaster/mapFile?fileName=" + fileName + "&numCopies=" + numCopies,
                 chunks,
                 String.class
         );
@@ -35,26 +34,26 @@ public class ClientService {
             return ResponseEntity.status(response.getStatusCode()).body("Failed to store file.");
         }
 
-        MapFileResponse chunkToChunkServerMap;
+        Map<String, List<String>> chunkToChunkServerMap;
         try {
-             chunkToChunkServerMap = objectMapper.readValue(response.getBody(), MapFileResponse.class);
+             chunkToChunkServerMap = objectMapper.readValue(response.getBody(), Map.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
 
 
-        if(chunks.size()!=chunkToChunkServerMap.getChunkAddressMap().size()){
+        if(chunks.size()!=chunkToChunkServerMap.size()){
             throw new RuntimeException("Chunk size in master does not match the chunk size split in client");
         }
 
         //send chunks to respective chunk server addresses
         for(Chunk chunk: chunks){
-            if(!chunkToChunkServerMap.getChunkAddressMap().containsKey(chunk.getId())){
+            if(!chunkToChunkServerMap.containsKey(chunk.getId())){
                 throw new RuntimeException("chunkId not found in response from master");
             }
-            List<String> chunkAddressList = chunkToChunkServerMap.getChunkAddressMap().get(chunk.getId());
+            List<String> chunkAddressList = chunkToChunkServerMap.get(chunk.getId());
             for(String chunkAddress: chunkAddressList){
-                restTemplate.postForEntity(chunkAddress + "/chunkServer/storeChunk?fileName=" + fileName, chunk, String.class);
+                restTemplate.postForEntity(chunkAddress + "/chunkserver/storeChunk?fileName=" + fileName, chunk, String.class);
             }
         }
 
