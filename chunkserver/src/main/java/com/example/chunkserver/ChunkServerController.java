@@ -3,6 +3,7 @@ package com.example.chunkserver;
 import com.example.chunkserver.entity.Chunk;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 
@@ -23,6 +23,9 @@ public class ChunkServerController {
     private ChunkServerService chunkServerService;
     private Map<String, List<String>> chunkStorage = new HashMap<>();
 
+    @Value("${server.port}")
+    private int serverPort;
+
     @PostConstruct
     public void initializeChunkStorage() {
         System.out.println("Initializing chunk storage...");
@@ -31,20 +34,17 @@ public class ChunkServerController {
     }
 
     @PostMapping("/storeChunk")
-    public ResponseEntity<String> storeChunk(@RequestParam String filename, @RequestBody Chunk chunk,
-            HttpServletRequest request) {
+    public ResponseEntity<String> storeChunk(@RequestParam String filename, @RequestBody Chunk chunk) {
         try {
-            String senderIp = request.getRemoteAddr();
-            int serverPort = request.getLocalPort();
-
             System.out.println("Received request to store chunk: " + chunk.getId() + ", for file: " + filename);
+
             List<String> chunkIds = chunkStorage.containsKey(filename) ? chunkStorage.get(filename) : new ArrayList<>();
             chunkIds.stream().filter(c -> c.equals(chunk.getId()))
                     .findFirst()
                     .ifPresentOrElse(null, () -> chunkIds.add(chunk.getId()));
             chunkStorage.put(filename, chunkIds);
 
-            chunkServerService.storeChunk(senderIp, serverPort, filename, chunk);
+            chunkServerService.storeChunk(serverPort, filename, chunk);
 
             return ResponseEntity.ok("Stored ChunkID: " + chunk.getId() + ", for File: " + filename);
         } catch (IOException e) {
@@ -57,16 +57,14 @@ public class ChunkServerController {
     }
 
     @PostMapping("/getChunk")
-    public ResponseEntity<Chunk> getChunk(@RequestParam String filename, String chunkId, HttpServletRequest request) {
+    public ResponseEntity<Chunk> getChunk(@RequestParam String filename, String chunkId) {
         if (!chunkStorage.containsKey(filename) || !chunkStorage.get(filename).contains(chunkId)){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
         try {
-            String senderIp = request.getRemoteAddr();
-            int serverPort = request.getLocalPort();
             System.out.println("Received request to retrieve chunk: " + chunkId + ", for file: " + filename);
-            String data = chunkServerService.getChunk(senderIp, serverPort, filename, chunkId);
+            String data = chunkServerService.getChunk(serverPort, filename, chunkId);
 
             return ResponseEntity.ok(new Chunk(chunkId, data));
         } catch (IOException e) {
