@@ -37,6 +37,7 @@ public class ChunkServerController {
     public ResponseEntity<String> storeChunk(@RequestParam String filename, @RequestBody Chunk chunk) {
         try {
             System.out.println("Received request to store chunk: " + chunk.getId() + ", for file: " + filename);
+            chunkServerService.storeChunk(serverPort, filename, chunk);
 
             List<String> chunkIds = chunkStorage.containsKey(filename) ? chunkStorage.get(filename) : new ArrayList<>();
             chunkIds.stream().filter(c -> c.equals(chunk.getId()))
