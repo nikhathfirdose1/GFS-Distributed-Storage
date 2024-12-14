@@ -1,6 +1,8 @@
 package com.example.chunkserver;
 
 import com.example.chunkserver.entity.Chunk;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,15 +16,32 @@ import java.util.Map;
 @RequestMapping("/chunkserver")
 public class ChunkServerController {
 
-    private final Map<String, List<Chunk>> chunkStorage = new HashMap<>();
+    @Autowired
+    private ChunkServerService chunkServerService;
+    private Map<String, List<Chunk>> chunkStorage = new HashMap<>();
+
+    @PostConstruct
+    public void initializeChunkStorage() {
+        System.out.println("Initializing chunk storage...");
+        chunkStorage = chunkServerService.retrieveChunks();
+        System.out.println("Chunk storage initialized: " + chunkStorage);
+    }
 
     @PostMapping("/storeChunk")
     public ResponseEntity<String> storeChunk(@RequestParam String filename, @RequestBody Chunk chunk) {
         System.out.println("Received request to store chunk: " + chunk.getId() + ", for file: " + filename);
         List<Chunk> chunks = chunkStorage.containsKey(filename) ? chunkStorage.get(filename) : new ArrayList<>();
 
-        chunks.add(chunk);
+        chunks.stream()
+                .filter(c -> c.getId().equals(chunk.getId()))
+                .findFirst()
+                .ifPresentOrElse(
+                        existingChunk -> chunks.set(chunks.indexOf(existingChunk), chunk),
+                        () -> chunks.add(chunk)
+                );              //add new chunk, or replace if same chunkId exists already
+
         chunkStorage.put(filename, chunks);
+        chunkServerService.storeChunk(filename, chunk);
         System.out.println("Stored ChunkID: " + chunk.getId() + ", for File: " + filename);
         System.out.println("Current Chunks stored for file: "+filename);
         for (Chunk c : chunks){
