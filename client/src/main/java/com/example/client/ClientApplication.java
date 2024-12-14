@@ -1,11 +1,53 @@
 package com.example.client;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import com.example.client.service.ClientService;
 
-@SpringBootApplication
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Scanner;
+
 public class ClientApplication {
+
     public static void main(String[] args) {
-        SpringApplication.run(ClientApplication.class, args);
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter command : 1. Read 2. Write : ");
+        int command = scanner.nextInt();
+        switch (command) {
+            case 1:
+                readOperation();
+                break;
+            case 2:
+                writeOperation();
+                break;
+        }
+    }
+
+    public static void readOperation() {
+        Scanner scanner = new Scanner(System.in);
+        ClientService clientService = new ClientService();
+        String fileName;
+        System.out.println("##Read Operation## Enter File Name : ");
+        fileName = scanner.nextLine();
+//        clientService.readFile(fileName);
+    }
+
+    public static void writeOperation() {
+        Scanner scanner = new Scanner(System.in);
+        ClientService clientService = new ClientService();
+        String fileName;
+        System.out.println("##Write Operation## Enter File Path : ");
+        String filePath = scanner.nextLine();
+        byte[] file;
+        try {
+            file = Files.readAllBytes(Path.of(filePath));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("Enter File Name : ");
+        fileName = scanner.nextLine();
+        System.out.println("Enter Number Of Copies : ");
+        int numCopies = scanner.nextInt();
+        System.out.println(clientService.uploadFile(fileName, file, numCopies));
     }
 }
