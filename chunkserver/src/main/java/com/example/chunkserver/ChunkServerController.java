@@ -29,6 +29,8 @@ public class ChunkServerController {
     @PostConstruct
     public void initializeChunkStorage() {
         System.out.println("Initializing chunk storage...");
+
+        //TO-DO: update this
         // chunkStorage = chunkServerService.retrieveChunks();
         System.out.println("Chunk storage initialized: " + chunkStorage);
     }

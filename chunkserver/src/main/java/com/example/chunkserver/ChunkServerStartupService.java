@@ -24,12 +24,14 @@ public class ChunkServerStartupService {
         RestTemplate restTemplate = new RestTemplate();
         String requestUrl = chunkMasterUrl + "/addChunkServer?chunkServerUrl=" + chunkServerUrl;
         System.out.println(requestUrl);
-        ResponseEntity<String> response = restTemplate.postForEntity(requestUrl, null, String.class);
+
+        //TO-DO: retry thrice with 5-10 sec sleep time if master not started yet
+       /* ResponseEntity<String> response = restTemplate.postForEntity(requestUrl, null, String.class);
 
         if (response.getStatusCode().is2xxSuccessful()) {
             System.out.println("Successfully registered with Chunk Master");
         } else {
             throw new RuntimeException("Failed to register with Chunk Master");
-        }
+        }*/
     }
 }
