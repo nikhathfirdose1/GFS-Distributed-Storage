@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.io.File;
 import java.io.IOException;
 
 @RestController
@@ -32,6 +32,21 @@ public class ChunkServerController {
 
         //TO-DO: update this
         // chunkStorage = chunkServerService.retrieveChunks();
+        File directory = new File(System.getProperty("user.dir") + File.separator + "chunks" + File.separator + serverPort);
+        File[] directories = directory.listFiles(File::isDirectory);
+
+        if (directories != null) {
+            for (File dir : directories) {
+                File[] files = dir.listFiles(File::isFile);
+                if (files != null) {
+                    List<String> chunkIds = new ArrayList<>();
+                    for (File file : files) {
+                        chunkIds.add(file.getName().replace(".chk", ""));
+                    }
+                    chunkStorage.put(dir.getName(), chunkIds);
+                }
+            }
+        }
         System.out.println("Chunk storage initialized: " + chunkStorage);
     }
 

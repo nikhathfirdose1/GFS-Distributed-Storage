@@ -11,7 +11,7 @@ import com.example.chunkserver.entity.Chunk;
 
 @Service
 public class ChunkServerService {
-    private String getBaseURL(int serverPort, String fileName) {
+    public String getBaseURL(int serverPort, String fileName) {
         return System.getProperty("user.dir") + File.separator + "chunks" + File.separator + serverPort + File.separator + fileName;
     }
 
