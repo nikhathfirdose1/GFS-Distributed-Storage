@@ -29,6 +29,8 @@ public class ChunkServerController {
     @PostConstruct
     public void initializeChunkStorage() {
         System.out.println("Initializing chunk storage...");
+
+        //TO-DO: update this
         // chunkStorage = chunkServerService.retrieveChunks();
         File directory = new File(System.getProperty("user.dir") + File.separator + "chunks" + File.separator + serverPort);
         File[] directories = directory.listFiles(File::isDirectory);
