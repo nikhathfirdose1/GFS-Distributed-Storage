@@ -57,7 +57,7 @@ public class ChunkServerController {
         }
     }
 
-    @PostMapping("/getChunk")
+    @GetMapping("/getChunk")
     public ResponseEntity<Chunk> getChunk(@RequestParam String filename, String chunkId) {
         if (!chunkStorage.containsKey(filename) || !chunkStorage.get(filename).contains(chunkId)){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
