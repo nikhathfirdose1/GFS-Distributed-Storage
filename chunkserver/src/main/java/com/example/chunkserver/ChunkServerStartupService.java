@@ -23,7 +23,6 @@ public class ChunkServerStartupService {
 
         RestTemplate restTemplate = new RestTemplate();
         String requestUrl = chunkMasterUrl + "/addChunkServer?chunkServerUrl=" + chunkServerUrl;
-        System.out.println(requestUrl);
 
         int maxRetries = 3;
         int retryCount = 0;

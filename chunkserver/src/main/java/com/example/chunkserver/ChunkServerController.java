@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/chunkserver")
@@ -21,17 +24,25 @@ public class ChunkServerController {
 
     @Autowired
     private ChunkServerService chunkServerService;
+    @Autowired
+    private HeartBeatService heartBeatService;
     private Map<String, List<String>> chunkStorage = new HashMap<>();
 
     @Value("${server.port}")
     private int serverPort;
 
+    String chunkServerIp;
+    String chunkServerUrl;
+
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+
     @PostConstruct
     public void initializeChunkStorage() {
         System.out.println("Initializing chunk storage...");
+        chunkServerIp = "127.0.0.1"; // Replace with actual IP if needed
+        chunkServerUrl = "http://" + chunkServerIp + ":" + serverPort;
 
-        //TO-DO: update this
-        // chunkStorage = chunkServerService.retrieveChunks();
         File directory = new File(System.getProperty("user.dir") + File.separator + "chunks" + File.separator + serverPort);
         File[] directories = directory.listFiles(File::isDirectory);
 
@@ -48,6 +59,11 @@ public class ChunkServerController {
             }
         }
         System.out.println("Chunk storage initialized: " + chunkStorage);
+
+        heartBeatService.sendHeartBeatToMaster(chunkServerUrl, chunkStorage);   //initial heartbeat
+        scheduler.scheduleAtFixedRate(() -> {
+            heartBeatService.sendHeartBeatToMaster(chunkServerUrl, chunkStorage);   //periodic heartbeat
+        }, 0, 500, TimeUnit.MILLISECONDS);
     }
 
     @PostMapping("/storeChunk")
@@ -63,6 +79,7 @@ public class ChunkServerController {
             chunkStorage.put(filename, chunkIds);
 
             chunkServerService.storeChunk(serverPort, filename, chunk);
+            heartBeatService.sendHeartBeatToMaster(chunkServerUrl, chunkStorage);
 
             return ResponseEntity.ok("Stored ChunkID: " + chunk.getId() + ", for File: " + filename);
         } catch (IOException e) {
@@ -76,7 +93,7 @@ public class ChunkServerController {
 
     @GetMapping("/getChunk")
     public ResponseEntity<Chunk> getChunk(@RequestParam String filename, String chunkId) {
-        if (!chunkStorage.containsKey(filename) || !chunkStorage.get(filename).contains(chunkId)){
+        if (!chunkStorage.containsKey(filename) || !chunkStorage.get(filename).contains(chunkId)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
