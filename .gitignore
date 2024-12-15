@@ -37,5 +37,5 @@ build/
 ### Mac OS ###
 .DS_Store
 
-.chunkserver/files/
-.chunkserver/chunks/
+files/
+chunks/
