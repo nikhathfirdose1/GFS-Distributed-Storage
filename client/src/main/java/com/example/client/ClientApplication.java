@@ -1,5 +1,6 @@
 package com.example.client;
 
+import com.example.client.entity.ChunkToChunkServer;
 import com.example.client.service.ClientService;
 
 import java.io.FileOutputStream;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Scanner;
 
 public class ClientApplication {
@@ -22,10 +24,8 @@ public class ClientApplication {
             switch (command) {
                 case 1:
                     readOperation();
-                    break;
                 case 2:
                     writeOperation();
-                    break;
                 case 3:
                     flag = false;
             }
