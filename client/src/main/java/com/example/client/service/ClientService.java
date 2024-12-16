@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import java.io.ByteArrayOutputStream;
 
 import java.util.*;
 
@@ -138,7 +139,7 @@ public class ClientService {
             if (!isChunkRetrieved) {
                 throw new RuntimeException("Failed to retrieve chunk: " + chunkId + " from all available servers.");
             }
-
+            
             fileChunks.add(chunkData);
         }
 
