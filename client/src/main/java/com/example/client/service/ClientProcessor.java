@@ -1,25 +1,25 @@
 package com.example.client.service;
 
-import com.example.client.entity.Chunk;
-
+import com.example.client.entity.ChunkToChunkMaster;
+import com.example.client.entity.ChunkToChunkServer;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class ClientProcessor {
 
-    public List<Chunk> split(byte[] fileData, int chunkSize) {
-        List<Chunk> chunks = new ArrayList<>();
+    public List<Object> split(byte[] fileData, int chunkSize, String fileName) {
+        List<ChunkToChunkServer> chunkToChunkServers = new ArrayList<>();
+        List<ChunkToChunkMaster> chunkToChunkMasters = new ArrayList<>();
         // Iterate through the byte array in chunks
         for (int i = 0; i < fileData.length; i += chunkSize) {
             int end = Math.min(i + chunkSize, fileData.length);
             byte[] chunk = new byte[end - i];
             System.arraycopy(fileData, i, chunk, 0, chunk.length);
-            chunks.add(new Chunk(UUID.randomUUID().toString(), new String(chunk, StandardCharsets.UTF_8)));
+            String uuid = UUID.randomUUID().toString();
+            chunkToChunkMasters.add(new ChunkToChunkMaster(uuid, fileName, i+1));
+            chunkToChunkServers.add(new ChunkToChunkServer(uuid, new String(chunk, StandardCharsets.UTF_8), fileName, i+1));
         }
-        return chunks;
+        return Arrays.asList(chunkToChunkMasters, chunkToChunkServers);
     }
 
     public byte[] merge(String[] chunks) {

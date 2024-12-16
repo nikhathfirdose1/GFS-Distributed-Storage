@@ -7,7 +7,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class Chunk {
+public class ChunkToChunkMaster {
     String id;
-    String content;
+    String fileName;
+    int order;
 }
+

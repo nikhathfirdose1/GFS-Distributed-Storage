@@ -1,6 +1,7 @@
 package com.example.client.service;
 
-import com.example.client.entity.Chunk;
+import com.example.client.entity.ChunkToChunkMaster;
+import com.example.client.entity.ChunkToChunkServer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.*;
@@ -24,11 +25,13 @@ public class ClientService {
     public ResponseEntity<String> uploadFile(@RequestParam String fileName, @RequestBody byte[] fileData, @RequestParam int numCopies) {
         try {
             int chunkSizeInBytes = 1000;
-            List<Chunk> chunks = clientProcessor.split(fileData, chunkSizeInBytes);
+            List<Object> splitData = clientProcessor.split(fileData, chunkSizeInBytes, fileName);
+            List<ChunkToChunkMaster> chunkToChunkMasters = (List<ChunkToChunkMaster>) splitData.get(0);
+            List<ChunkToChunkServer> chunkToChunkServers = (List<ChunkToChunkServer>) splitData.get(1);
             // Notify ChunkMaster to store the file
             ResponseEntity<String> response = restTemplate.postForEntity(
                     "http://localhost:8080/chunkMaster/mapFile?fileName=" + fileName + "&numCopies=" + numCopies,
-                    chunks,
+                    chunkToChunkMasters,
                     String.class
             );
 
@@ -45,20 +48,20 @@ public class ClientService {
             }
 
 
-            if (chunks.size() != chunkToChunkServerMap.size()) {
+            if (chunkToChunkServers.size() != chunkToChunkServerMap.size()) {
                 throw new RuntimeException("Chunk size in master does not match the chunk size split in client");
             }
 
             //send chunks to respective chunk server addresses
-            for (Chunk chunk : chunks) {
-                if (!chunkToChunkServerMap.containsKey(chunk.getId())) {
+            for (ChunkToChunkServer chunkToChunkServer : chunkToChunkServers) {
+                if (!chunkToChunkServerMap.containsKey(chunkToChunkServer.getId())) {
                     throw new RuntimeException("chunkId not found in response from master");
                 }
-                List<String> chunkAddressList = chunkToChunkServerMap.get(chunk.getId());
+                List<String> chunkAddressList = chunkToChunkServerMap.get(chunkToChunkServer.getId());
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
                 for (String chunkAddress : chunkAddressList) {
-                    HttpEntity<Chunk> entity = new HttpEntity<>(chunk, headers);
+                    HttpEntity<ChunkToChunkServer> entity = new HttpEntity<>(chunkToChunkServer, headers);
                     String chunkServerStoreChunkURL = chunkAddress + "/chunkserver/storeChunk?filename=" + fileName;
                     restTemplate.exchange(
                             chunkServerStoreChunkURL,
@@ -120,7 +123,7 @@ public class ClientService {
             boolean isChunkRetrieved = false;
 
             for (String serverUrl : serverUrls) {
-                String chunkServerRetrieveChunkURL = serverUrl + "/chunkserver/retrieveChunk?chunkId=" + chunkId;
+                String chunkServerRetrieveChunkURL = serverUrl + "/chunkserver/getChunk?chunkId=" + chunkId + "&filename=" + fileName;
 
                 try {
                     ResponseEntity<byte[]> chunkResponse = restTemplate.getForEntity(
