@@ -54,13 +54,13 @@ public class ChunkServerController {
     }
 
     @PostMapping("/storeChunk")
-    public ResponseEntity<String> storeChunk(@RequestParam String filename, @RequestBody Chunk chunk) {
+    public ResponseEntity<String> storeChunk(@RequestBody Chunk chunk) {
         try {
-            System.out.println("Received request to store chunk: " + chunk.getId() + ", for file: " + filename);
-            chunkServerService.storeChunk(serverPort, filename, chunk);
-            storedChunkMetadataSet.add(new ChunkMetadata(chunk.getId(), filename, chunk.getOrder()));
+            System.out.println("Received request to store chunk: " + chunk.getId() + ", for file: " +chunk.getFilename());
+            chunkServerService.storeChunk(serverPort, chunk.getFilename(), chunk);
+            storedChunkMetadataSet.add(new ChunkMetadata(chunk.getId(), chunk.getFilename(), chunk.getOrder()));
 
-            return ResponseEntity.ok("Stored ChunkID: " + chunk.getId() + ", for File: " + filename);
+            return ResponseEntity.ok("Stored ChunkID: " + chunk.getId() + ", for File: " + chunk.getFilename());
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error storing chunk to file: " + e.getMessage());

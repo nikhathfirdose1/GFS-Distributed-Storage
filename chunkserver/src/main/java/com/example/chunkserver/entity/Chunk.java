@@ -6,6 +6,7 @@ import lombok.Getter;
 public class Chunk {
     String id;
     String content;
+    String filename;
     int order;
 
     public Chunk(String chunkId, String data, int order) {
