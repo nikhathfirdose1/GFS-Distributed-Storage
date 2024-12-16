@@ -77,22 +77,6 @@ public class ClientService {
                     );
                 }
             }
-
-
-//        // Simulate splitting the file into chunks and sending to ChunkServers
-//        String[] chunks = {fileName + "_chunk1", fileName + "_chunk2"};
-//        for (String chunk : chunks) {
-//            // Get servers for the chunk from ChunkMaster
-//            ResponseEntity<Map> mappingResponse = restTemplate.getForEntity(
-//                    "http://localhost:8080/chunkmaster/chunkServers",
-//                    Map.class
-//            );
-//            Map<String, List<String>> chunkServerMapping = mappingResponse.getBody();
-//
-//            for (String server : chunkServerMapping.get(chunk)) {
-//                restTemplate.postForEntity(server + "/chunkServer/storeChunk?chunkId=" + chunk, fileData, String.class);
-//            }
-//        }
             return ResponseEntity.ok("File uploaded and chunks distributed.");
         } catch (Exception e) {
             System.out.println(e);
