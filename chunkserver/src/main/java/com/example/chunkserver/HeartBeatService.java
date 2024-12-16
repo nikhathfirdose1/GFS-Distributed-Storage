@@ -26,6 +26,8 @@ public class HeartBeatService {
         try {
             restTemplate.postForEntity(requestUrl, heartbeat, String.class);
             System.out.println("Sent HeartBeat to master");
+            System.out.println(heartbeat.getChunkServer().getNetworkAddress());
+            System.out.println(heartbeat.getChunkServer().getChunks());
         } catch (Exception e) {
             System.err.println("Error sending heartbeat: " + e.getMessage());
         }

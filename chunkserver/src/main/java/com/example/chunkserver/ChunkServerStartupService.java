@@ -28,7 +28,7 @@ public class ChunkServerStartupService {
         int retryCount = 0;
         boolean success = false;
 
-        while (retryCount < maxRetries && !success) {
+        /*while (retryCount < maxRetries && !success) {
             try {
                 System.out.println("Attempting to register Chunk Server. Attempt: " + (retryCount + 1));
                 ResponseEntity<String> response = restTemplate.postForEntity(requestUrl, null, String.class);
@@ -59,6 +59,6 @@ public class ChunkServerStartupService {
 
         if (!success) {
             throw new RuntimeException("Failed to register with Chunk Master after " + maxRetries + " attempts");
-        }
+        }*/
     }
 }
