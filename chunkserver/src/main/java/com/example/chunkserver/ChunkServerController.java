@@ -29,7 +29,7 @@ public class ChunkServerController {
     @Value("${server.port}")
     private int serverPort;
 
-    @Value("${heartbeat.time}")
+    @Value("${heartbeat.timer}")
     private int heartbeatTimer;
 
     @Value("${server.ip}")
@@ -48,7 +48,7 @@ public class ChunkServerController {
         File[] directories = directory.listFiles(File::isDirectory);
 
         storedChunkMetadataSet = new HashSet<>();
-        if (directories != null) {
+        /*if (directories != null) {
             for (File dir : directories) {
                 File[] files = dir.listFiles(File::isFile);
                 if (files != null) {
@@ -58,10 +58,7 @@ public class ChunkServerController {
                     }
                 }
             }
-        }
-        System.out.println("Chunk storage initialized: " + storedChunkMetadataSet);
-
-        heartBeatService.sendHeartBeatToMaster(chunkServerAddress, storedChunkMetadataSet);   //initial heartbeat
+        }*/
         scheduler.scheduleAtFixedRate(() -> {
             heartBeatService.sendHeartBeatToMaster(chunkServerAddress, storedChunkMetadataSet);   //periodic heartbeat
         }, 0, heartbeatTimer, TimeUnit.MILLISECONDS);
