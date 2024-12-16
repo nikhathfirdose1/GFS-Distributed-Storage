@@ -38,6 +38,10 @@ public class ChunkServerController {
         }
     }
 
+    @GetMapping("/heartbeat")
+    public ResponseEntity<String> heartbeat() {
+        return ResponseEntity.ok("OK");
+    }
 
     @GetMapping("/getChunk")
     public ResponseEntity<byte[]> getChunk(@RequestParam String chunkId) {
