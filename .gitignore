@@ -5,6 +5,7 @@ target/
 client/src/main/resources/mini-2-report.pdf
 client/src/main/resources/sampleFile.txt
 
+files/
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml
