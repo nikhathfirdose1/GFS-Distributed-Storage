@@ -1,28 +1,16 @@
 package com.example.chunkserver.entity;
 
+import lombok.Getter;
 
+@Getter
 public class Chunk {
     String id;
     String content;
+    int order;
 
-    public Chunk(String chunkId, String data) {
+    public Chunk(String chunkId, String data, int order) {
         this.id = chunkId;
         this.content = data;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
+        this.order = order;
     }
 }

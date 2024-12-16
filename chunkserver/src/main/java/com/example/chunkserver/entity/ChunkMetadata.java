@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter @AllArgsConstructor
-public class ChunkServerHeartbeat {
-    ChunkServer chunkServer;
-    ServerStatus status;
-
+public class ChunkMetadata {
+    String id;
+    String fileName;
+    int order;
 }
