@@ -3,7 +3,9 @@ package com.example.client;
 import com.example.client.service.ClientService;
 
 import java.io.FileOutputStream;
+
 import org.springframework.http.ResponseEntity;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,9 +56,17 @@ public class ClientApplication {
     public static void writeOperation() {
         ClientService clientService = new ClientService();
         Scanner scanner = new Scanner(System.in);
-        String fileName;
+        String fileName = "";
         System.out.println("##Write Operation## Enter File Path : ");
         String filePath = scanner.nextLine();
+        int lastDotIndex = filePath.lastIndexOf('.');
+        if (lastDotIndex != -1 && lastDotIndex != filePath.length() - 1) {
+            String extension = filePath.substring(lastDotIndex + 1);
+            fileName += extension;
+        }
+        else {
+            throw new RuntimeException("File extension not processed properly");
+        }
         byte[] file;
         try {
             file = Files.readAllBytes(Path.of(filePath));
