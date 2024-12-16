@@ -2,6 +2,10 @@ package com.example.client.service;
 
 import com.example.client.entity.ChunkToChunkMaster;
 import com.example.client.entity.ChunkToChunkServer;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -22,28 +26,17 @@ public class ClientProcessor {
         return Arrays.asList(chunkToChunkMasters, chunkToChunkServers);
     }
 
-    public byte[] merge(String[] chunks) {
-        List<Byte> byteList = new ArrayList<>();
+    public byte[] merge(List<ChunkToChunkServer> fileChunks) {
 
-        for (String base64Str : chunks) {
-            byte[] decodedBytes = Base64.getDecoder().decode(base64Str);
-            for (byte b : decodedBytes) {
-                byteList.add(b);
-            }
+        fileChunks.sort(Comparator.comparingInt(chunk->chunk.getOrder()));
+
+        StringBuilder stringBuilder = new StringBuilder();
+        
+        for (ChunkToChunkServer chunk : fileChunks) {
+            stringBuilder.append(chunk.getContent());
         }
 
-        byte[] byteArray = new byte[byteList.size()];
-        for (int i = 0; i < byteList.size(); i++) {
-            byteArray[i] = byteList.get(i);
-        }
 
-        return byteArray;
-        //converting byteArray back to file format and saving it
-//        try {
-//            // Use Files.write to save the byte array to the file
-//            Files.write(Paths.get(filePath), byteArray);
-//        } catch (IOException e) {
-//            System.err.println("Error saving file: " + e.getMessage());
-//        }
+        return stringBuilder.toString().getBytes(StandardCharsets.UTF_8);
     }
 }

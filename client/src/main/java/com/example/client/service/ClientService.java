@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import java.io.ByteArrayOutputStream;
 
 import java.util.*;
 
@@ -113,22 +114,22 @@ public class ClientService {
             throw new RuntimeException(e);
         }
 
-        List<byte[]> fileChunks = new ArrayList<>();
+        List<ChunkToChunkServer> fileChunks = new ArrayList<>();
 
         for (Map.Entry<String, List<String>> entry : chunkToServerMap.entrySet()) {
             String chunkId = entry.getKey();
             List<String> serverUrls = entry.getValue();
 
-            byte[] chunkData = null;
+            ChunkToChunkServer chunkData = null;
             boolean isChunkRetrieved = false;
 
             for (String serverUrl : serverUrls) {
                 String chunkServerRetrieveChunkURL = serverUrl + "/chunkserver/getChunk?chunkId=" + chunkId + "&filename=" + fileName;
 
                 try {
-                    ResponseEntity<byte[]> chunkResponse = restTemplate.getForEntity(
+                    ResponseEntity<ChunkToChunkServer> chunkResponse = restTemplate.getForEntity(
                             chunkServerRetrieveChunkURL,
-                            byte[].class
+                            ChunkToChunkServer.class
                     );
 
                     if (chunkResponse.getStatusCode().is2xxSuccessful()) {
@@ -137,7 +138,6 @@ public class ClientService {
                         break; // Exit the loop as we successfully retrieved the chunk
                     }
                 } catch (Exception e) {
-                    System.out.println(e);
                     System.out.println("Failed to retrieve chunk from server: " + serverUrl + " - Trying next server.");
                 }
             }
@@ -145,19 +145,13 @@ public class ClientService {
             if (!isChunkRetrieved) {
                 throw new RuntimeException("Failed to retrieve chunk: " + chunkId + " from all available servers.");
             }
-
+            
             fileChunks.add(chunkData);
         }
 
-        // Combine chunks into a single file
-        int totalSize = fileChunks.stream().mapToInt(chunk -> chunk.length).sum();
-        byte[] fileData = new byte[totalSize];
-        int currentIndex = 0;
-        for (byte[] chunk : fileChunks) {
-            System.arraycopy(chunk, 0, fileData, currentIndex, chunk.length);
-            currentIndex += chunk.length;
-        }
+        byte[] fileData = clientProcessor.merge(fileChunks);
 
+        
         return ResponseEntity.ok(fileData);
     }
 }
