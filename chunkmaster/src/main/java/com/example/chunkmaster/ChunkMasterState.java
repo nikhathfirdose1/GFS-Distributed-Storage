@@ -26,6 +26,10 @@ public class ChunkMasterState {
      * @param heartbeat Information from chunk server
      */
     public void updateChunkServerState(Heartbeat heartbeat){
+        if(heartbeat == null || heartbeat.getStatus() == null){
+            handleServerError();
+            return;
+        }
         switch (heartbeat.getStatus()){
             case ONLINE -> {
                 // Update network address by network
