@@ -24,8 +24,10 @@ public class ClientApplication {
             switch (command) {
                 case 1:
                     readOperation();
+                    break;
                 case 2:
                     writeOperation();
+                    break;
                 case 3:
                     flag = false;
             }
@@ -59,14 +61,6 @@ public class ClientApplication {
         String fileName = "";
         System.out.println("##Write Operation## Enter File Path : ");
         String filePath = scanner.nextLine();
-        int lastDotIndex = filePath.lastIndexOf('.');
-        if (lastDotIndex != -1 && lastDotIndex != filePath.length() - 1) {
-            String extension = filePath.substring(lastDotIndex + 1);
-            fileName += extension;
-        }
-        else {
-            throw new RuntimeException("File extension not processed properly");
-        }
         byte[] file;
         try {
             file = Files.readAllBytes(Path.of(filePath));
@@ -75,6 +69,14 @@ public class ClientApplication {
         }
         System.out.println("Enter File Name : ");
         fileName = scanner.nextLine();
+        int lastDotIndex = filePath.lastIndexOf('.');
+        if (lastDotIndex != -1 && lastDotIndex != filePath.length() - 1) {
+            String extension = filePath.substring(lastDotIndex + 1);
+            fileName += "." + extension;
+        }
+        else {
+            throw new RuntimeException("File extension not processed properly");
+        }
         System.out.println("Enter Number Of Copies : ");
         int numCopies = scanner.nextInt();
         System.out.println(clientService.uploadFile(fileName, file, numCopies));

@@ -2,11 +2,13 @@ package com.example.client.service;
 
 import com.example.client.entity.ChunkToChunkMaster;
 import com.example.client.entity.ChunkToChunkServer;
+import com.example.client.entity.response.MasterWriteResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+
 import java.io.ByteArrayOutputStream;
 
 import java.util.*;
@@ -41,18 +43,21 @@ public class ClientService {
                 return ResponseEntity.status(response.getStatusCode()).body("Failed to store file.");
             }
 
-            Map<String, List<String>> chunkToChunkServerMap;
+            MasterWriteResponse masterWriteResponse;
             try {
-                chunkToChunkServerMap = objectMapper.readValue(response.getBody(), Map.class);
+                masterWriteResponse = objectMapper.readValue(response.getBody(), MasterWriteResponse.class);
+                if (!masterWriteResponse.getSuccess() && masterWriteResponse.getError() != null) {
+                    throw new RuntimeException(masterWriteResponse.getError());
+                }
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
 
 
-            if (chunkToChunkServers.size() != chunkToChunkServerMap.size()) {
+            if (chunkToChunkServers.size() != masterWriteResponse.getData().size()) {
                 throw new RuntimeException("Chunk size in master does not match the chunk size split in client");
             }
-
+            Map<String, List<String>> chunkToChunkServerMap = masterWriteResponse.getData();
             //send chunks to respective chunk server addresses
             for (ChunkToChunkServer chunkToChunkServer : chunkToChunkServers) {
                 if (!chunkToChunkServerMap.containsKey(chunkToChunkServer.getId())) {
@@ -63,7 +68,7 @@ public class ClientService {
                 headers.setContentType(MediaType.APPLICATION_JSON);
                 for (String chunkAddress : chunkAddressList) {
                     HttpEntity<ChunkToChunkServer> entity = new HttpEntity<>(chunkToChunkServer, headers);
-                    String chunkServerStoreChunkURL = chunkAddress + "/chunkserver/storeChunk";
+                    String chunkServerStoreChunkURL = "http://" + chunkAddress + "/chunkserver/storeChunk";
                     restTemplate.exchange(
                             chunkServerStoreChunkURL,
                             HttpMethod.POST,
@@ -89,7 +94,7 @@ public class ClientService {
 //            }
 //        }
             return ResponseEntity.ok("File uploaded and chunks distributed.");
-        }catch(Exception e){
+        } catch (Exception e) {
             System.out.println(e);
             return ResponseEntity.ok("An Unexpected Error Occurred!");
         }
@@ -107,12 +112,17 @@ public class ClientService {
             return ResponseEntity.status(response.getStatusCode()).body(null);
         }
 
-        Map<String, List<String>> chunkToServerMap;
+        MasterWriteResponse masterWriteResponse;
         try {
-            chunkToServerMap = objectMapper.readValue(response.getBody(), Map.class);
+            masterWriteResponse = objectMapper.readValue(response.getBody(), MasterWriteResponse.class);
+            if (!masterWriteResponse.getSuccess() && masterWriteResponse.getError() != null) {
+                throw new RuntimeException(masterWriteResponse.getError());
+            }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+
+        Map<String, List<String>> chunkToServerMap = masterWriteResponse.getData();
 
         List<ChunkToChunkServer> fileChunks = new ArrayList<>();
 
@@ -124,7 +134,7 @@ public class ClientService {
             boolean isChunkRetrieved = false;
 
             for (String serverUrl : serverUrls) {
-                String chunkServerRetrieveChunkURL = serverUrl + "/chunkserver/getChunk?chunkId=" + chunkId + "&filename=" + fileName;
+                String chunkServerRetrieveChunkURL = "http://" + serverUrl + "/chunkserver/getChunk?chunkId=" + chunkId + "&filename=" + fileName;
 
                 try {
                     ResponseEntity<ChunkToChunkServer> chunkResponse = restTemplate.getForEntity(
@@ -145,13 +155,13 @@ public class ClientService {
             if (!isChunkRetrieved) {
                 throw new RuntimeException("Failed to retrieve chunk: " + chunkId + " from all available servers.");
             }
-            
+
             fileChunks.add(chunkData);
         }
 
         byte[] fileData = clientProcessor.merge(fileChunks);
 
-        
+
         return ResponseEntity.ok(fileData);
     }
 }

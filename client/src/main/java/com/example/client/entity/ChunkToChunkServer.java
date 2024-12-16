@@ -10,6 +10,6 @@ import lombok.Setter;
 public class ChunkToChunkServer {
     String id;
     String content;
-    String fileName;
+    String filename;
     int order;
 }
