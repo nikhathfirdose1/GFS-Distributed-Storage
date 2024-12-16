@@ -2,6 +2,12 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+client/src/main/resources/mini-2-report.pdf
+client/src/main/resources/sampleFile.txt
+client/src/testFile.txt
+client/src/downloaded_input
+files/
+
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
