@@ -62,7 +62,7 @@ public class ClientService {
                 headers.setContentType(MediaType.APPLICATION_JSON);
                 for (String chunkAddress : chunkAddressList) {
                     HttpEntity<ChunkToChunkServer> entity = new HttpEntity<>(chunkToChunkServer, headers);
-                    String chunkServerStoreChunkURL = chunkAddress + "/chunkserver/storeChunk?filename=" + fileName;
+                    String chunkServerStoreChunkURL = chunkAddress + "/chunkserver/storeChunk";
                     restTemplate.exchange(
                             chunkServerStoreChunkURL,
                             HttpMethod.POST,
