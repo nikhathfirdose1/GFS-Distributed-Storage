@@ -1,0 +1,42 @@
+/Descent -244.14063
+/StemV 53.222656
+/CapHeight 710.9375
+/ItalicAngle 0
+/FontBBox [-736.81641 -270.99609 1148.4375 1056.15234]
+/FontFile2 28 0 R>>
+endobj
+30 0 obj
+<</Type /Font
+/FontDescriptor 29 0 R
+/BaseFont /AAAAAA+Roboto-Regular
+/Subtype /CIDFontType2
+/CIDToGIDMap /Identity
+/CIDSystemInfo <</Registry (Adobe)
+/Ordering (Identity)
+/Supplement 0>>
+/W [0 [443.35938] 57 [648.4375] 73 [529.78516] 82 [551.75781] 87 [515.625 326.66016]]
+/DW 0>>
+endobj
+31 0 obj
+<</Filter /FlateDecode
+/Length 255>> stream
+x�]P�J�0}�W������*���
+}���H�i7�MB�>��ͥVp 	�s�d��s��*�~X�;t0H%,�z���Q*� $w�7��!ԛ�uv8�jФ��gggW8<
+����V��j�����[����AF���+3olB��vl��[����ZBq���Z�lG�Ԉ��|5P��j*�/����٠.�:˪�	�6����"���i����Sjq�S��F�����Z-�3f
+i��}�F��
+�N�(
+endstream
+endobj
+4 0 obj
+<</Type /Font
+/Subtype /Type0
+/BaseFont /AAAAAA+Roboto-Regular
+/Encoding /Identity-H
+/DescendantFonts [30 0 R]
+/ToUnicode 31 0 R>>
+endobj
+32 0 obj
+<</Length1 50052
+/Filter /FlateDecode
+/Length 28789>> stream
+x��|

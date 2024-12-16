@@ -11,15 +11,20 @@ public class ClientApplication {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter command : 1. Read 2. Write : ");
-        int command = scanner.nextInt();
-        switch (command) {
-            case 1:
-                readOperation();
-                break;
-            case 2:
-                writeOperation();
-                break;
+        boolean flag = true;
+        while (flag) {
+            System.out.println("Enter command : 1. Read 2. Write 3. Exit");
+            int command = scanner.nextInt();
+            switch (command) {
+                case 1:
+                    readOperation();
+                    break;
+                case 2:
+                    writeOperation();
+                    break;
+                case 3:
+                    flag = false;
+            }
         }
     }
 
