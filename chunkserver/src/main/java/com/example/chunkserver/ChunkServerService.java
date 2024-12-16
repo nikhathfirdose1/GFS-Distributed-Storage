@@ -4,64 +4,50 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
+
+import org.springframework.stereotype.Service;
 
 import com.example.chunkserver.entity.Chunk;
-import org.springframework.stereotype.Service;
 
 @Service
 public class ChunkServerService {
-    public void storeChunk(String filename, Chunk chunk) throws RuntimeException {
-        String basePath = System.getProperty("user.dir") + File.separator + "files";
-        File directory = new File(basePath, filename);
+    public String getBaseURL(int serverPort, String fileName) {
+        return System.getProperty("user.dir") + File.separator + "chunks" + File.separator + serverPort + File.separator + fileName;
+    }
 
+    public String storeChunk(int serverPort, String filename, Chunk chunk)
+            throws IOException, RuntimeException {
+        File directory = new File(getBaseURL(serverPort, filename));
         if (!directory.exists()) {
             boolean dirCreated = directory.mkdirs();
             if (!dirCreated) {
-                System.err.println("Failed to create directory: " + directory.getAbsolutePath());
-                return;
+                throw new RuntimeException("Failed to create directory: " + directory.getAbsolutePath());
             }
         }
 
-        File chunkFile = new File(directory, chunk.getId() + ".txt");
+        File chunkFile = new File(directory, chunk.getId() + ".chk");
         try (FileWriter writer = new FileWriter(chunkFile)) {
             writer.write(chunk.getContent());
-            System.out.println("Chunk stored successfully: " + chunkFile.getAbsolutePath());
         } catch (IOException e) {
-            System.err.println("Error writing chunk to file: " + chunkFile.getAbsolutePath());
-            e.printStackTrace();
+            throw new IOException(chunkFile.getAbsolutePath());
         }
+
+        return chunkFile.getAbsolutePath();
     }
 
-    public Map<String, List<Chunk>> retrieveChunks() {
-        Map<String, List<Chunk>> storage = new HashMap<>();
-        File baseDirectory = new File(System.getProperty("user.dir")+ File.separator + "files");
+    public String getChunk(int serverPort, String filename, String chunkId)
+            throws IOException, RuntimeException {
 
-        if (!baseDirectory.exists()){
-            if (baseDirectory.mkdirs()) {
-                System.out.println("Directory created: " + baseDirectory.getAbsolutePath());
-            } else {
-                System.err.println("Failed to create directory: " + baseDirectory.getAbsolutePath());
-            }
+        File directory = new File(getBaseURL(serverPort, filename));
+        if (!directory.exists()) {
+            throw new RuntimeException("File chunks not found: " + directory.getAbsolutePath());
         }
 
-        for (File dir : Objects.requireNonNull(baseDirectory.listFiles(File::isDirectory))) {
-            List<Chunk> chunks = new ArrayList<>();
-
-            for (File file : Objects.requireNonNull(dir.listFiles((d, name) -> name.endsWith(".txt")))) {
-                try {
-                    String content = Files.readString(file.toPath());
-                    String chunkId = file.getName().replace(".txt", "");
-                    chunks.add(new Chunk(chunkId, content));
-                } catch (IOException e) {
-                    System.err.println("Error reading file: " + file.getAbsolutePath());
-                    e.printStackTrace();
-                }
-            }
-
-            storage.put(dir.getName(), chunks);
+        File chunkFile = new File(directory + File.separator + chunkId + ".chk");
+        if (!chunkFile.exists()) {
+            throw new IOException("Chunk not found: " + chunkId + ".chk");
         }
-        return storage;
+
+        return Files.readString(chunkFile.toPath());
     }
-
 }
