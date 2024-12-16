@@ -24,7 +24,6 @@ public class ChunkServerController {
     private ChunkServerService chunkServerService;
     @Autowired
     private HeartBeatService heartBeatService;
-//    private Map<String, List<String>> chunkStorage = new HashMap<>();
     private Set<ChunkMetadata> storedChunkMetadataSet;
 
     @Value("${server.port}")
@@ -33,6 +32,7 @@ public class ChunkServerController {
     @Value("${heartbeat.time}")
     private int heartbeatTimer;
 
+    @Value("${server.ip}")
     String chunkServerIp;
     String chunkServerAddress;
 
@@ -42,7 +42,6 @@ public class ChunkServerController {
     @PostConstruct
     public void initializeChunkStorage() {
         System.out.println("Initializing chunk storage...");
-        chunkServerIp = "127.0.0.1"; // Replace with actual IP if needed
         chunkServerAddress = chunkServerIp + ":" + serverPort;
 
         File directory = new File(System.getProperty("user.dir") + File.separator + "chunks" + File.separator + serverPort);
@@ -53,13 +52,10 @@ public class ChunkServerController {
             for (File dir : directories) {
                 File[] files = dir.listFiles(File::isFile);
                 if (files != null) {
-                    List<String> chunkIds = new ArrayList<>();
                     for (File file : files) {
                         String chunkId = file.getName().replace(".chk", "");
-                        chunkIds.add(file.getName().replace(".chk", ""));
                         storedChunkMetadataSet.add(new ChunkMetadata(chunkId, dir.getName(), -1));
                     }
-//                    chunkStorage.put(dir.getName(), chunkIds);
                 }
             }
         }
@@ -77,11 +73,6 @@ public class ChunkServerController {
             System.out.println("Received request to store chunk: " + chunk.getId() + ", for file: " + filename);
             chunkServerService.storeChunk(serverPort, filename, chunk);
 
-            /*List<String> chunkIds = chunkStorage.containsKey(filename) ? chunkStorage.get(filename) : new ArrayList<>();
-            chunkIds.stream().filter(c -> c.equals(chunk.getId()))
-                    .findFirst()
-                    .ifPresentOrElse(null, () -> chunkIds.add(chunk.getId()));
-            chunkStorage.put(filename, chunkIds);*/
             storedChunkMetadataSet.add(new ChunkMetadata(chunk.getId(), filename, chunk.getOrder()));
 
             chunkServerService.storeChunk(serverPort, filename, chunk);
@@ -99,11 +90,6 @@ public class ChunkServerController {
 
     @GetMapping("/getChunk")
     public ResponseEntity<Chunk> getChunk(@RequestParam String filename, String chunkId) {
-        /*if (!chunkStorage.containsKey(filename) || !chunkStorage.get(filename).contains(chunkId)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }*/
-
-        boolean exists = false;
         int order = -1;
 
         for (ChunkMetadata chunkMetadata : storedChunkMetadataSet) {
@@ -121,9 +107,7 @@ public class ChunkServerController {
             String data = chunkServerService.getChunk(serverPort, filename, chunkId);
 
             return ResponseEntity.ok(new Chunk(chunkId, data, order));
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (RuntimeException e) {
+        } catch (IOException | RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
