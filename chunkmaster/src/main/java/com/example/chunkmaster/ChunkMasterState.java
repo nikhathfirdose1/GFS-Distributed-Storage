@@ -32,7 +32,7 @@ public class ChunkMasterState {
                 chunkServersByNetworkAddress.put(heartbeat.getChunkServer().getNetworkAddress(), heartbeat.getChunkServer());
 
                 // Update fileToChunkNumMap
-                Collection<ChunkMetadata> chunksInServer = heartbeat.getChunkServer().getChunksById().values();
+                Collection<ChunkMetadata> chunksInServer = heartbeat.getChunkServer().getChunks();
                 String serverAddress = heartbeat.getChunkServer().getNetworkAddress();
 
                 for(ChunkMetadata chunkMetadata: chunksInServer){

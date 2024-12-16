@@ -12,19 +12,19 @@ import java.util.stream.Collectors;
 @Getter
 public class ChunkServer {
     private final String networkAddress;
-    private final ConcurrentHashMap<String, ChunkMetadata> chunksById;
+    private final Set<ChunkMetadata> chunks;
 
-    public ChunkServer(String networkAddress, ConcurrentHashMap<String, ChunkMetadata> chunks) {
+    public ChunkServer(String networkAddress, Set<ChunkMetadata> chunks) {
         this.networkAddress = networkAddress;
-        this.chunksById = chunks;
+        this.chunks = chunks;
     }
 
     public int getFileCount() {
-        return chunksById.size();
+        return chunks.size();
     }
 
     public void addFile(ChunkMetadata chunk){
-        chunksById.put(chunk.id(), chunk);
+        chunks.add(chunk);
     }
 
     // Static method to sort ChunkServers by file list size
