@@ -48,17 +48,6 @@ public class ChunkServerController {
         File[] directories = directory.listFiles(File::isDirectory);
 
         storedChunkMetadataSet = new HashSet<>();
-        /*if (directories != null) {
-            for (File dir : directories) {
-                File[] files = dir.listFiles(File::isFile);
-                if (files != null) {
-                    for (File file : files) {
-                        String chunkId = file.getName().replace(".chk", "");
-                        storedChunkMetadataSet.add(new ChunkMetadata(chunkId, dir.getName(), -1));
-                    }
-                }
-            }
-        }*/
         scheduler.scheduleAtFixedRate(() -> {
             heartBeatService.sendHeartBeatToMaster(chunkServerAddress, storedChunkMetadataSet);   //periodic heartbeat
         }, 0, heartbeatTimer, TimeUnit.MILLISECONDS);
@@ -69,11 +58,7 @@ public class ChunkServerController {
         try {
             System.out.println("Received request to store chunk: " + chunk.getId() + ", for file: " + filename);
             chunkServerService.storeChunk(serverPort, filename, chunk);
-
             storedChunkMetadataSet.add(new ChunkMetadata(chunk.getId(), filename, chunk.getOrder()));
-
-            chunkServerService.storeChunk(serverPort, filename, chunk);
-            heartBeatService.sendHeartBeatToMaster(chunkServerAddress, storedChunkMetadataSet);
 
             return ResponseEntity.ok("Stored ChunkID: " + chunk.getId() + ", for File: " + filename);
         } catch (IOException e) {
