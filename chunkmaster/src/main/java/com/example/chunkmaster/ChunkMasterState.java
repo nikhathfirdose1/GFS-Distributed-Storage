@@ -121,6 +121,10 @@ public class ChunkMasterState {
         return chunkServersByNetworkAddress;
     }
 
+    public ConcurrentHashMap<String, Map<String, List<String>>> fileToChunkNumMap() {
+        return fileToChunkNumMap;
+    }
+
     /**
      * Getter for all files with its content mapping to each server address
      * @return All files with its content mapping to each server address

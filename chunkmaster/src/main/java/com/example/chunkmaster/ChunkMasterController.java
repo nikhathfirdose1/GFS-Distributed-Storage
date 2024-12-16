@@ -1,6 +1,14 @@
 package com.example.chunkmaster;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import java.util.*;
 
@@ -10,8 +18,36 @@ public class ChunkMasterController {
 
     private ChunkMasterState state = new ChunkMasterState();
 
+    @Autowired
+    private HeartBeatService heartBeatService;
+
     // Map of chunk server URLs and the number of chunks they hold
     private final Map<String, Integer> chunkServers = new HashMap<>();
+    private Queue<String> chunkServerQueue = new ConcurrentLinkedQueue<>();
+
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+//    @Value("${server.address}")
+//    private int serverIP;
+
+    @Value("${heartbeat.interval}")
+    private int heartbeatTimer;
+
+    @PostConstruct
+    public void chunkServerLiveliness() {
+
+        initializeChunkServerQueue();
+
+        scheduler.scheduleAtFixedRate(() -> {
+            heartBeatService.sendHeartBeatToChunkServer(chunkServerQueue);   //periodic heartbeat
+        }, 0, heartbeatTimer, TimeUnit.MILLISECONDS);
+    }
+
+    private void initializeChunkServerQueue() {
+        chunkServerQueue.clear();
+        chunkServerQueue.addAll(state.chunkServersByNetworkAddress().keySet());
+    }
+
 
     @PostMapping("/chunkStatus")
     public ResponseEntity<String> chunkServerStatus(@RequestBody Heartbeat heartbeat) {
