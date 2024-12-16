@@ -2,9 +2,6 @@ package com.example.client.service;
 
 import com.example.client.entity.ChunkToChunkMaster;
 import com.example.client.entity.ChunkToChunkServer;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -31,12 +28,15 @@ public class ClientProcessor {
         fileChunks.sort(Comparator.comparingInt(chunk->chunk.getOrder()));
 
         StringBuilder stringBuilder = new StringBuilder();
-        
+
+        // Append content after validating
         for (ChunkToChunkServer chunk : fileChunks) {
             stringBuilder.append(chunk.getContent());
+            // if (chunk.getContent() != null && !chunk.getContent().isEmpty()) {
+            //     stringBuilder.append(new String(Base64.getDecoder().decode(chunk.getContent()), StandardCharsets.UTF_8));
+            // }
         }
 
-
-        return stringBuilder.toString().getBytes(StandardCharsets.UTF_8);
+        return stringBuilder.toString().getBytes();
     }
 }

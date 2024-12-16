@@ -9,11 +9,10 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.ByteArrayOutputStream;
-
 import java.util.*;
 
 public class ClientService {
+    private final String MASTER = "http://192.168.10.1:8080";
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -33,7 +32,7 @@ public class ClientService {
             List<ChunkToChunkServer> chunkToChunkServers = (List<ChunkToChunkServer>) splitData.get(1);
             // Notify ChunkMaster to store the file
             ResponseEntity<String> response = restTemplate.postForEntity(
-                    "http://localhost:8080/chunkMaster/mapFile?fileName=" + fileName + "&numCopies=" + numCopies,
+                    MASTER+"/chunkMaster/mapFile?fileName=" + fileName + "&numCopies=" + numCopies,
                     chunkToChunkMasters,
                     String.class
             );
@@ -88,7 +87,7 @@ public class ClientService {
     public ResponseEntity<byte[]> readFile(String fileName) {
         // Get the chunk-to-server mapping from the ChunkMaster
         ResponseEntity<String> response = restTemplate.getForEntity(
-                "http://localhost:8080/chunkMaster/getFileMapping?fileName=" + fileName,
+                MASTER+"/chunkMaster/getFileMapping?fileName=" + fileName,
                 String.class
         );
 
