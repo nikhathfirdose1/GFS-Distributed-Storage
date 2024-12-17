@@ -12,6 +12,10 @@ import java.io.ByteArrayOutputStream;
 
 import java.util.*;
 
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
+import org.springframework.http.ResponseEntity;
+
 public class ClientService {
     private final String MASTER = "http://192.168.10.1:8080";
 
@@ -31,6 +35,7 @@ public class ClientService {
             List<Object> splitData = clientProcessor.split(fileData, chunkSizeInBytes, fileName);
             List<ChunkToChunkMaster> chunkToChunkMasters = (List<ChunkToChunkMaster>) splitData.get(0);
             List<ChunkToChunkServer> chunkToChunkServers = (List<ChunkToChunkServer>) splitData.get(1);
+            System.out.println(chunkToChunkServers.get(0).getContent());
             // Notify ChunkMaster to store the file
             ResponseEntity<String> response = restTemplate.postForEntity(
                     MASTER+"/chunkMaster/mapFile?fileName=" + fileName + "&numCopies=" + numCopies,
@@ -108,44 +113,93 @@ public class ClientService {
 
         Map<String, List<String>> chunkToServerMap = masterWriteResponse.getData();
 
-        List<ChunkToChunkServer> fileChunks = new ArrayList<>();
+        // List<ChunkToChunkServer> fileChunks = new ArrayList<>();
 
-        for (Map.Entry<String, List<String>> entry : chunkToServerMap.entrySet()) {
-            String chunkId = entry.getKey();
-            List<String> serverUrls = entry.getValue();
+        // for (Map.Entry<String, List<String>> entry : chunkToServerMap.entrySet()) {
+        //     String chunkId = entry.getKey();
+        //     List<String> serverUrls = entry.getValue();
 
-            ChunkToChunkServer chunkData = null;
-            boolean isChunkRetrieved = false;
+        //     ChunkToChunkServer chunkData = null;
+        //     boolean isChunkRetrieved = false;
 
-            for (String serverUrl : serverUrls) {
-                String chunkServerRetrieveChunkURL = "http://" + serverUrl + "/chunkserver/getChunk?chunkId=" + chunkId + "&filename=" + fileName;
+        //     for (String serverUrl : serverUrls) {
+        //         String chunkServerRetrieveChunkURL = "http://" + serverUrl + "/chunkserver/getChunk?chunkId=" + chunkId + "&filename=" + fileName;
 
-                try {
-                    ResponseEntity<ChunkToChunkServer> chunkResponse = restTemplate.getForEntity(
-                            chunkServerRetrieveChunkURL,
-                            ChunkToChunkServer.class
-                    );
+        //         try {
+        //             ResponseEntity<ChunkToChunkServer> chunkResponse = restTemplate.getForEntity(
+        //                     chunkServerRetrieveChunkURL,
+        //                     ChunkToChunkServer.class
+        //             );
 
-                    if (chunkResponse.getStatusCode().is2xxSuccessful()) {
-                        chunkData = chunkResponse.getBody();
-                        isChunkRetrieved = true;
-                        break; // Exit the loop as we successfully retrieved the chunk
-                    }
-                } catch (Exception e) {
-                    System.out.println("Failed to retrieve chunk from server: " + serverUrl + " - Trying next server.");
-                }
-            }
+        //             if (chunkResponse.getStatusCode().is2xxSuccessful()) {
+        //                 chunkData = chunkResponse.getBody();
+        //                 isChunkRetrieved = true;
+        //                 break; // Exit the loop as we successfully retrieved the chunk
+        //             }
+        //         } catch (Exception e) {
+        //             System.out.println("Failed to retrieve chunk from server: " + serverUrl + " - Trying next server.");
+        //         }
+        //     }
 
-            if (!isChunkRetrieved) {
-                throw new RuntimeException("Failed to retrieve chunk: " + chunkId + " from all available servers.");
-            }
+        //     if (!isChunkRetrieved) {
+        //         throw new RuntimeException("Failed to retrieve chunk: " + chunkId + " from all available servers.");
+        //     }
             
-            fileChunks.add(chunkData);
-        }
+        //     fileChunks.add(chunkData);
+        // }
 
-        byte[] fileData = clientProcessor.merge(fileChunks);
+        byte[] fileData = clientProcessor.merge(retrieveChunksParallel(chunkToServerMap, fileName));
 
 
         return ResponseEntity.ok(fileData);
     }
+
+    
+    public List<ChunkToChunkServer> retrieveChunksParallel(Map<String, List<String>> chunkToServerMap, String fileName) {
+        List<CompletableFuture<ChunkToChunkServer>> futures = new ArrayList<>();
+        ExecutorService executor = Executors.newFixedThreadPool(10); // Define a thread pool size
+    
+        for (Map.Entry<String, List<String>> entry : chunkToServerMap.entrySet()) {
+            String chunkId = entry.getKey();
+            List<String> serverUrls = entry.getValue();
+    
+            // Submit chunk retrieval tasks as CompletableFutures
+            CompletableFuture<ChunkToChunkServer> chunkFuture = CompletableFuture.supplyAsync(() -> {
+                for (String serverUrl : serverUrls) {
+                    String chunkServerRetrieveChunkURL = "http://" + serverUrl + "/chunkserver/getChunk?chunkId=" + chunkId + "&filename=" + fileName;
+                    try {
+                        ResponseEntity<ChunkToChunkServer> chunkResponse = restTemplate.getForEntity(
+                                chunkServerRetrieveChunkURL,
+                                ChunkToChunkServer.class
+                        );
+                        if (chunkResponse.getStatusCode().is2xxSuccessful()) {
+                            return chunkResponse.getBody();
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Failed to retrieve chunk from server: " + serverUrl + " - Trying next server.");
+                    }
+                }
+                throw new RuntimeException("Failed to retrieve chunk: " + chunkId + " from all available servers.");
+            }, executor);
+    
+            futures.add(chunkFuture);
+        }
+    
+        // Collect and process results
+        try {
+            List<ChunkToChunkServer> fileChunks = futures.stream()
+                    .map(CompletableFuture::join) // Wait for all futures to complete
+                    .collect(Collectors.toList());
+    
+            System.out.println("Successfully retrieved all chunks!");
+            // Process fileChunks as needed
+            return fileChunks;
+        } catch (CompletionException e) {
+            System.err.println("Error during chunk retrieval: " + e.getMessage());
+            throw e;
+        } finally {
+            executor.shutdown(); // Shutdown the executor service
+        }
+    }
+    
 }
