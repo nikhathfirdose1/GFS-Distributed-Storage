@@ -76,7 +76,6 @@ This project implements a distributed storage system inspired by the Google File
 ### Prerequisites:
 - Java 11+
 - Maven
-- Apache Kafka & Zookeeper
 
 ### Steps:
 1. Clone the repository:
