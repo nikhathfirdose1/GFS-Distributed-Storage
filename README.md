@@ -1,97 +1,107 @@
-# GFS-Inspired Distributed Storage System
+# GFS-Inspired Distributed Storage System 🚀
 
-This project implements a distributed storage system inspired by the Google File System (GFS). It is designed to handle large-scale file storage and retrieval using a distributed architecture.
+A distributed storage system inspired by the Google File System (GFS), designed for scalable, fault-tolerant file storage and retrieval across multiple nodes.
 
-## Key Features
+---
 
-- **Chunk Master:** Manages metadata, chunk distribution, and client interactions.
-- **Chunk Server:** Stores data chunks and handles read/write requests.
-- **Client:** Interfaces with the chunk master and chunk servers for file storage and retrieval.
-- **Fault Tolerance:** Replicates data across multiple servers for durability.
-- **Scalable Architecture:** Designed for large-scale data handling with load balancing.
+## ⚙️ Key Features
 
-## Technologies Used
-- **Language:** Java
-- **Framework:** Spring Boot
-- **Architecture:** Microservices
-- **Security:** SSL/TLS, RSA, OpenSSL
-- **Tools:** Maven, Postman
+- 🧠 **Chunk Master**: Manages metadata, client requests, and chunk distribution  
+- 💾 **Chunk Servers**: Store data chunks, handle read/write requests  
+- 🤝 **Client**: Interfaces with master and servers for upload/download  
+- 🔁 **Fault Tolerance**: Data replication across multiple servers  
+- 📈 **Scalable Architecture**: Load-balanced chunk distribution
 
-## System Components
+---
 
-### 1. Chunk Master
-- Manages metadata of stored files.
-- Allocates chunks to chunk servers based on load balancing.
-- Receives heartbeat signals from chunk servers for health monitoring.
+## 🛠️ Technologies Used
 
-### 2. Chunk Server
-- Stores and manages file chunks.
-- Responds to read and write requests from the client.
-- Sends periodic heartbeat signals to the chunk master.
+- **Language:** Java  
+- **Framework:** Spring Boot  
+- **Architecture:** Microservices  
+- **Security:** SSL/TLS, RSA, OpenSSL  
+- **Build Tool:** Maven  
+- **Testing:** JUnit, Postman
 
-### 3. Client
-- Provides a command-line interface for users to upload and retrieve files.
-- Splits files into chunks before uploading.
-- Merges retrieved chunks back into the original file during downloads.
+---
 
-## Data Flow
+## 🔍 System Components
 
-### Write Operation:
-1. The client sends a write request to the chunk master.
-2. The chunk master returns the list of chunk servers for data storage.
-3. The client splits the file into chunks and sends them to the specified chunk servers.
+<details>
+<summary><strong>1. Chunk Master</strong></summary>
 
-### Read Operation:
-1. The client requests a file from the chunk master.
-2. The chunk master provides the chunk server locations.
-3. The client retrieves chunks from the chunk servers and reconstructs the file.
+- Manages metadata of stored files  
+- Allocates chunks to chunk servers based on load balancing  
+- Receives heartbeat signals from chunk servers for health monitoring  
 
-## Chunk Master Implementation
-### Core Components:
-- **ChunkMasterApplication:** Entry point for the Spring Boot application.
-- **ChunkMasterController:** Manages client requests for chunk allocation and retrieval.
-- **MetadataService:** Maintains file metadata and chunk mappings.
-- **LoadBalancer:** Assigns chunks to the least-loaded chunk servers for optimized distribution.
+</details>
 
-## Chunk Server Implementation
-### Core Components:
-- **ChunkServerApplication:** Entry point for the Spring Boot application.
-- **ChunkServerController:** Handles HTTP requests for chunk operations.
-- **ChunkServerService:** Manages storage and retrieval of data chunks.
-- **HeartBeatService:** Sends periodic heartbeat messages to the master server.
+<details>
+<summary><strong>2. Chunk Server</strong></summary>
 
-## Client Implementation
-### Core Components:
-- **ClientApplication:** Entry point for the client-side operations.
-- **ClientService:** Handles file splitting, merging, and interaction with the master and chunk servers.
+- Stores and manages file chunks  
+- Responds to read and write requests from the client  
+- Sends periodic heartbeat signals to the chunk master  
 
+</details>
 
-## Testing and Validation
-- **Postman** used for endpoint validation.
-- **Unit Tests** for chunk storage, retrieval, and heartbeat mechanisms.
-- **Integration Testing** with client, master, and chunk server components.
+<details>
+<summary><strong>3. Client</strong></summary>
 
-## Setup and Deployment
+- CLI-based interface for file upload/download  
+- Splits files into chunks before uploading  
+- Merges retrieved chunks back into the original file during downloads  
 
-### Prerequisites:
-- Java 11+
-- Maven
+</details>
 
-### Steps:
-1. Clone the repository:
-   ```bash
-   git clone <repo-url>
-   ```
-2. Build the project:
-   ```bash
-   mvn clean install
-   ```
-3. Start Chunk Master and Servers:
-   ```bash
-   java -jar target/chunkmaster.jar
-   java -jar target/chunkserver.jar
-   ```
-4. Run the Client:
-   ```bash
-   java -jar target/client.jar
-   ```
+---
+
+## 🔄 Data Flow
+
+### 📥 Write Operation
+
+1. Client sends a write request to the chunk master  
+2. Chunk master returns a list of chunk servers  
+3. Client splits the file and sends chunks to those servers  
+
+### 📤 Read Operation
+
+1. Client requests file metadata from the chunk master  
+2. Master returns chunk locations  
+3. Client downloads chunks and reconstructs the file  
+
+---
+
+## 🧪 Testing and Validation
+
+- ✅ Unit tests for chunk storage, retrieval, and heartbeat logic  
+- ✅ Integration testing across client, master, and chunk servers  
+- ✅ API validation using Postman
+
+---
+
+## 🚀 Getting Started
+
+### ✅ Prerequisites
+
+- Java 11+  
+- Maven  
+
+### 🛠️ Setup & Run
+
+```bash
+# Clone the repository
+git clone https://github.com/nikhathfirdose1/chunkfs.git
+cd chunkfs
+
+# Build the project
+mvn clean install
+
+# Start the Chunk Master
+java -jar chunkmaster/target/chunkmaster.jar
+
+# Start a Chunk Server (run this in separate terminals for multiple servers)
+java -jar chunkserver/target/chunkserver.jar
+
+# Run the Client
+java -jar client/target/client.jar
