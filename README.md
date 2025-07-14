@@ -74,20 +74,20 @@ A distributed storage system inspired by the Google File System (GFS), designed 
 
 ## 🧪 Testing and Validation
 
-- ✅ Unit tests for chunk storage, retrieval, and heartbeat logic  
-- ✅ Integration testing across client, master, and chunk servers  
-- ✅ API validation using Postman
+- Unit tests for chunk storage, retrieval, and heartbeat logic  
+- Integration testing across client, master, and chunk servers  
+- API validation using Postman
 
 ---
 
 ## 🚀 Getting Started
 
-### ✅ Prerequisites
+### Prerequisites
 
 - Java 11+  
 - Maven  
 
-### 🛠️ Setup & Run
+### Setup & Run
 
 ```bash
 # Clone the repository
